@@ -81,7 +81,7 @@ class Client(object):
                 params={'offset': i * 100, 'limit': last}
             ).json()
             account_cookies += r['data']
-        print("账号总数: %s" % len(account_amount))
+        print("账号总数: %s" % account_amount)
         return {e['id']: e['cookies'] for e in account_cookies}
 
     def update_cookies_pool(self):
