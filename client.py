@@ -13,10 +13,13 @@ IP_PORT_REGEX = '[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}.[0-9]{1,3}:[0-9]{1,5}'
 
 
 class Client(object):
-    __slots__ = ['loop', 'bili_live', 'cookies_pool', 'odoo_address', 'proxy_pool_address']
+    __slots__ = ['loop', 'bili_live', 'cookies_pool', 'odoo_address', 'proxy_pool_address', 'limit', 'offset']
 
-    def __init__(self, loop, room_id, odoo_host, odoo_port=80, proxy_pool_host=None, proxy_pool_port=80):
+    def __init__(self, loop, room_id, odoo_host, odoo_port=80, proxy_pool_host=None, proxy_pool_port=80, limit=100,
+                 offset=0):
         self.loop = loop
+        self.limit = limit
+        self.offset = offset
         self.odoo_address = 'http://%s:%s' % (odoo_host, odoo_port)
         self.proxy_pool_address = 'http://%s:%s' % (proxy_pool_host, proxy_pool_port) if proxy_pool_host else None
         self.cookies_pool = self.get_cookies()
@@ -64,24 +67,24 @@ class Client(object):
 
     def get_cookies(self):
         account_amount = self._get_account_amount()
-        last = account_amount % 100
-        account_cookies = []
-        range_index = int(account_amount / 100)
+        # last = account_amount % 100
+        # account_cookies = []
+        # range_index = int(account_amount / 100)
         i = 0
-        while range_index > i:
-            r = requests.get(
-                '%s/account/cookies' % self.odoo_address,
-                params={'offset': i * 100, 'limit': 100}
-            ).json()
-            account_cookies += r['data']
-            i += 1
-        else:
-            r = requests.get(
-                '%s/account/cookies' % self.odoo_address,
-                params={'offset': i * 100, 'limit': last}
-            ).json()
-            account_cookies += r['data']
-        print("账号总数: %s" % account_amount)
+        # while range_index > i:
+        #     r = requests.get(
+        #         '%s/account/cookies' % self.odoo_address,
+        #         params={'offset': i * 100, 'limit': 100}
+        #     ).json()
+        #     account_cookies += r['data']
+        #     i += 1
+        # else:
+        r = requests.get(
+            '%s/account/cookies' % self.odoo_address,
+            params={'offset': self.offset, 'limit': self.limit}
+        ).json()
+        account_cookies = r['data']
+        print("账号总数: %s" % self.limit)
         return {e['id']: e['cookies'] for e in account_cookies}
 
     def update_cookies_pool(self):
